@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using ProductTrackingSystem.Application.DTOs.ProductDTOS;
 using ProductTrackingSystem.Application.Interfaces;
 using ProductTrackingSystem.Domain.Entities;
@@ -43,19 +44,19 @@ namespace ProductTrackingSystem.Application.Services
             return await productRepository.DeleteAsync(id);
         }
 
-        public async Task<ProductDto?> UpdateProductAsync(int id, UpdateProductDto updateProductDto)
+        public async Task<bool> UpdateProductAsync(int id, UpdateProductDto updateProductDto)
         {
             var existingProduct = await productRepository.GetByIdAsync(id);
             if (existingProduct == null)
-                return null;
+                return false;
 
             mapper.Map(updateProductDto, existingProduct);
 
             var success = await productRepository.UpdateAsync(existingProduct);
             if (!success)
-                return null;
+                return false;
 
-            return mapper.Map<ProductDto>(existingProduct);
+            return success;
         }
 
         public async Task<ProductDto?> GetProductBySkuAsync(string sku)
@@ -65,5 +66,16 @@ namespace ProductTrackingSystem.Application.Services
             return productDto;
 
         }
+
+        public async Task<bool> IsSkuTakenAsync(string sku, int? productId = null)
+        {
+            var product = await productRepository.GetBySkuAsync(sku);
+            if (product == null)
+                return false;
+            if (productId.HasValue && product.Id == productId.Value)
+                return false;
+            return true;
+        }
+
     }
 }

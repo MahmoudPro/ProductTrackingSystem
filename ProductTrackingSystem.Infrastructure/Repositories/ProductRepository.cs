@@ -48,6 +48,12 @@ namespace ProductTrackingSystem.Infrastructure.Repositories
             _context.Products.Update(product);
             return await SaveChangesAsync() > 0;
         }
+
+        public async Task<bool> IsSkuTakenAsync(string sku, int excludeProductId)
+        {
+            return await _context.Products
+                .AnyAsync(p => p.SKU == sku && p.Id != excludeProductId);
+        }
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ProductTrackingSystem.Application.DTOs.ProductDTOS;
 using ProductTrackingSystem.Application.Interfaces;
+using ProductTrackingSystem.Domain.Entities;
 
 namespace ProductTrackingSystem.API.Controllers
 {
@@ -46,6 +47,7 @@ namespace ProductTrackingSystem.API.Controllers
             }
         }
 
+
         [HttpGet("GetProductById/{id}")]
         public async Task<IActionResult> GetProductById(int id)
         {
@@ -77,6 +79,7 @@ namespace ProductTrackingSystem.API.Controllers
             }
         }
 
+        
         [HttpPost("AddProduct")]
         public async Task<IActionResult> AddProduct([FromBody] CreateProductDto createProductDto)
         {
@@ -117,6 +120,7 @@ namespace ProductTrackingSystem.API.Controllers
             }
         }
 
+        
         [HttpPut("UpdateProduct/{id}")]
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto updateProductDto)
         {
@@ -129,17 +133,24 @@ namespace ProductTrackingSystem.API.Controllers
                         message = "Invalid model state",
                         errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
                     });
-                var existingProduct = await _productService.GetProductBySkuAsync(updateProductDto.SKU);
-                if (existingProduct != null)
+
+                var product = await _productService.GetProductByIdAsync(id);
+                
+                if (!string.Equals(product.SKU, updateProductDto.SKU, StringComparison.OrdinalIgnoreCase))
                 {
-                    return BadRequest(new
+                    var skuExists = await _productService.IsSkuTakenAsync(updateProductDto.SKU, id);
+                    if (skuExists)
                     {
-                        Success = false,
-                        message = "A product with the same SKU already exists"
-                    });
+                        return BadRequest(new
+                        {
+                            Success = false,
+                            message = "A product with the same SKU already exists"
+                        });
+                    }
                 }
+
                 var updatedProduct = await _productService.UpdateProductAsync(id, updateProductDto);
-                if (updatedProduct == null)
+                if (!updatedProduct)
                 {
                     return NotFound(new
                     {
@@ -149,11 +160,9 @@ namespace ProductTrackingSystem.API.Controllers
                 }
                 return Ok(new
                 {
-                    Success = true,
-                    message = "Product updated successfully",
-                    data = updatedProduct
+                    Success = true, 
+                    message = "Product updated successfully"
                 });
-
             }
             catch (Exception ex)
             {
@@ -164,6 +173,7 @@ namespace ProductTrackingSystem.API.Controllers
                 });
             }
         }
+        
         
         [HttpDelete("DeleteProduct/{id}")]
         public async Task<IActionResult> DeleteProduct(int id)

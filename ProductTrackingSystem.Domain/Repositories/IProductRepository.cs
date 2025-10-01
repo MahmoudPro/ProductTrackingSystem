@@ -11,6 +11,8 @@ namespace ProductTrackingSystem.Domain.Repositories
         Task<Product> AddAsync(Product product);
         Task<bool> UpdateAsync(Product product);
         Task<bool> DeleteAsync(int id);
+
+        Task<bool> IsSkuTakenAsync(string sku, int excludeProductId);
         Task<int> SaveChangesAsync();
     }
 }
