@@ -27,6 +27,7 @@ namespace ProductTrackingSystem.API
                           .AllowAnyHeader();
                 });
             });
+
             builder.Services.AddDbContext<PTSContext>(options => 
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
             );
@@ -42,6 +43,8 @@ namespace ProductTrackingSystem.API
             builder.Services.AddScoped<IOrderLineRepository, OrderLineRepository>();
             builder.Services.AddScoped<IOrderLineService, OrderLineService>();
 
+            builder.Services.AddScoped<IProductTrackingRepository, ProductTrackingRepository>();
+            builder.Services.AddScoped<IProductTrackingService, ProductTrackingService>();
             
 
             builder.Services.AddSwaggerGen();

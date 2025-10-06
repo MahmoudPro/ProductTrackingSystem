@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using ProductTrackingSystem.Application.DTOs.ProductDTOS;
 using ProductTrackingSystem.Application.Interfaces;
 using ProductTrackingSystem.Domain.Entities;
@@ -11,9 +10,15 @@ namespace ProductTrackingSystem.Application.Services
     {
         private readonly IProductRepository productRepository;
         private readonly IMapper mapper;
-        public ProductService(IProductRepository _productRepository, IMapper _mapper) {
+        private readonly IProductTrackingRepository productTracking;
+
+        public ProductService(
+            IProductRepository _productRepository,
+            IMapper _mapper,
+            IProductTrackingRepository _productTracking) {
             productRepository = _productRepository;
             mapper = _mapper;
+            productTracking = _productTracking;
         }
 
         public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
@@ -35,13 +40,18 @@ namespace ProductTrackingSystem.Application.Services
             var product = mapper.Map<Product>(createProductDto);
             var newProduct = await productRepository.AddAsync(product);
             var productDto = mapper.Map<ProductDto>(newProduct);
+
+            string description = $"New product '{product.Name}' added with {product.QuantityInStock} units.";
+            await LogActionAsync(
+                    productDto.Id,
+                    TrackingAction.Added,
+                    productDto.QuantityInStock,
+                    description
+                );
+
+            
             return productDto;
 
-        }
-
-        public async Task<bool> DeleteProductAsync(int id)
-        {
-            return await productRepository.DeleteAsync(id);
         }
 
         public async Task<bool> UpdateProductAsync(int id, UpdateProductDto updateProductDto)
@@ -50,13 +60,70 @@ namespace ProductTrackingSystem.Application.Services
             if (existingProduct == null)
                 return false;
 
+            var oldQuantity = existingProduct.QuantityInStock;
+            var oldPrice = existingProduct.Price;
+
             mapper.Map(updateProductDto, existingProduct);
 
             var success = await productRepository.UpdateAsync(existingProduct);
             if (!success)
                 return false;
 
-            return success;
+
+            var quantityDiff = existingProduct.QuantityInStock - oldQuantity;
+            var priceDiff = existingProduct.Price - oldPrice;
+            TrackingAction actionType;
+            string description;
+
+            if (quantityDiff > 0)
+            {
+                actionType = TrackingAction.AddedStock;
+                description = $"{quantityDiff} units added to stock.";
+            }
+            else if (quantityDiff < 0)
+            {
+                actionType = TrackingAction.RemovedStock;
+                description = $"{Math.Abs(quantityDiff)} units removed from stock.";
+            }
+            else if (existingProduct.Price != oldPrice)
+            {
+                actionType = TrackingAction.Updated;
+                description = $"Price updated from {oldPrice:C} to {existingProduct.Price:C}.";
+            }
+            else
+            {
+                actionType = TrackingAction.Updated;
+                description = "Product details updated.";
+            }
+
+            await LogActionAsync(
+                existingProduct.Id,
+                actionType,
+                quantityDiff,
+                description
+            );
+
+            return true;
+        }
+
+        public async Task LogActionAsync(int productId,TrackingAction actionType, int quantityChange, string description)
+        {
+            var log = new ProductTrackingLog
+            {
+                ProductId = productId,
+                Action = actionType,
+                QuantityChange = quantityChange,
+                Description = description,
+                ActionDate = DateTime.UtcNow
+            };
+
+            await productTracking.AddAsync(log);
+
+        }
+
+        public async Task<bool> DeleteProductAsync(int id)
+        {
+            return await productRepository.DeleteAsync(id);
         }
 
         public async Task<ProductDto?> GetProductBySkuAsync(string sku)

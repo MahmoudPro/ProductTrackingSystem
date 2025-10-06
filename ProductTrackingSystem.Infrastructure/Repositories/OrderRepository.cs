@@ -16,8 +16,8 @@ namespace ProductTrackingSystem.Infrastructure.Repositories
         public async Task<IEnumerable<Order>> GetAllAsync()
         {
             return await _context.Orders
-                .Include(o => o.OrderLines) 
-                .ThenInclude(o => o.Product)
+                .Include(o => o.OrderLines)
+                    .ThenInclude(ol => ol.Product)
                 .ToListAsync();
         }
 
@@ -25,7 +25,7 @@ namespace ProductTrackingSystem.Infrastructure.Repositories
         {
             return await _context.Orders
                 .Include(o => o.OrderLines)
-                .ThenInclude(ol => ol.Product)
+                    .ThenInclude(ol => ol.Product)
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 

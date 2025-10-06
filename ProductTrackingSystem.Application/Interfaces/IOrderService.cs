@@ -4,7 +4,6 @@ namespace ProductTrackingSystem.Application.Interfaces
 {
     public interface IOrderService
     {
-        Task<IEnumerable<OrderDto>> GetAllOrdersWithOrderLinesAsync();
         Task<IEnumerable<OrderDto>> GetAllOrdersAsync();
         Task<OrderDto?> GetOrderByIdAsync(int id);
         Task<(bool Success, string? Message, OrderDto? Order)> PlaceOrderAsync(CreateOrderDto createOrderDto);

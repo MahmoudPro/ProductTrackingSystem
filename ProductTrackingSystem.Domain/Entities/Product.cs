@@ -26,6 +26,15 @@ namespace ProductTrackingSystem.Domain.Entities
         [Range(0, int.MaxValue, ErrorMessage = "Quantity in stock cannot be negative.")]
         public int QuantityInStock { get; set; }
 
+        [Required]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [Required]
+        public DateTime LastUpdatedAt { get; set; } = DateTime.UtcNow;
+
         public ICollection<OrderLine> OrderLines { get; set; } = new List<OrderLine>();
+
+        public ICollection<ProductTrackingLog> TrackingLogs { get; set; } = new List<ProductTrackingLog>();
+
     }
 }

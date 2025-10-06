@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ProductTrackingSystem.Application.DTOs.ProductDTOS;
 using ProductTrackingSystem.Application.Interfaces;
-using ProductTrackingSystem.Domain.Entities;
 
 namespace ProductTrackingSystem.API.Controllers
 {

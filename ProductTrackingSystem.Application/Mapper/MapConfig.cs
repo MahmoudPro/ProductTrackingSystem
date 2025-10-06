@@ -2,6 +2,7 @@
 using ProductTrackingSystem.Application.DTOs.OrderDTOs;
 using ProductTrackingSystem.Application.DTOs.OrderLineDTOs;
 using ProductTrackingSystem.Application.DTOs.ProductDTOS;
+using ProductTrackingSystem.Application.DTOs.ProductTrackingDTOs;
 using ProductTrackingSystem.Domain.Entities;
 
 namespace ProductTrackingSystem.Application.Mapper
@@ -24,6 +25,9 @@ namespace ProductTrackingSystem.Application.Mapper
             CreateMap<OrderLine, OrderLineDto>().ReverseMap();
             CreateMap<OrderLine, CreateOrderLineDto>().ReverseMap();
             CreateMap<OrderLine, UpdateOrderLineDto>().ReverseMap();
+
+            CreateMap<ProductTrackingLog,ProductTrackingLogDto>().ReverseMap();
+            CreateMap<CreateProductTrackingLogDto,ProductTrackingLog>();
         }
         }
 }

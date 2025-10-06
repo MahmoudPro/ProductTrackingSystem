@@ -12,21 +12,24 @@ namespace ProductTrackingSystem.Application.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IProductRepository _productRepository;
         private readonly IOrderLineRepository _orderLineRepository ;
+        private readonly IProductTrackingRepository _trackingRepository;
         private readonly IMapper _mapper;
 
-        public OrderService(IOrderRepository orderRepository, IMapper mapper, IProductRepository productRepository, IOrderLineRepository orderLineRepository)
+        public OrderService(IOrderRepository orderRepository,
+            IMapper mapper,
+            IProductRepository productRepository,
+            IOrderLineRepository orderLineRepository,
+            IProductTrackingRepository trackingRepository
+            )
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
             _orderLineRepository = orderLineRepository;
+            _trackingRepository = trackingRepository;
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<OrderDto>> GetAllOrdersWithOrderLinesAsync()
-        {
-            var orders = await _orderRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<OrderDto>>(orders);
-        }
+        
         public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync()
         {
             var orders = await _orderRepository.GetAllAsync();
@@ -38,6 +41,7 @@ namespace ProductTrackingSystem.Application.Services
             var order = await _orderRepository.GetByIdAsync(id);
             return _mapper.Map<OrderDto?>(order);
         }
+
         public async Task<(bool Success, string? Message)> CheckStockAsync(CreateOrderDto createOrderDto)
         {
             foreach (var line in createOrderDto.OrderLines)
@@ -82,6 +86,16 @@ namespace ProductTrackingSystem.Application.Services
 
                 product.QuantityInStock -= line.Quantity;
                 await _productRepository.UpdateAsync(product);
+
+                var log = new ProductTrackingLog
+                {
+                    ProductId = line.ProductId,
+                    Action = TrackingAction.Sold,
+                    QuantityChange = -line.Quantity,
+                    Description = $"{line.Quantity} units sold in order #{order.Id}.",
+                    ActionDate = DateTime.UtcNow
+                };
+                await _trackingRepository.AddAsync(log);
 
                 order.TotalAmount += orderLine.Quantity * orderLine.UnitPrice;
             }

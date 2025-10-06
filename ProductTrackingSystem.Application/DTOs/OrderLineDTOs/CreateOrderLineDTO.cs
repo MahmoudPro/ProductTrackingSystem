@@ -11,6 +11,7 @@ namespace ProductTrackingSystem.Application.DTOs.OrderLineDTOs
 {
     public class CreateOrderLineDto
     {
+        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be >= 1")]
         public int Quantity { get; set; }
         public int ProductId { get; set; }
 

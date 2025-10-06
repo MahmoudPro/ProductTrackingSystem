@@ -10,6 +10,7 @@ namespace ProductTrackingSystem.Infrastructure.Contexts
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderLine> OrderLines { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<ProductTrackingLog> ProductTrackingLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,6 +28,10 @@ namespace ProductTrackingSystem.Infrastructure.Contexts
                 .WithOne(ol => ol.Product)
                 .HasForeignKey(ol => ol.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
+          
+
+
+
         }
 
     }
